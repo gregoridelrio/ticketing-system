@@ -41,7 +41,7 @@ export const useAuthStore = defineStore('auth', {
         await api.post('/auth/register', userData);
         return true;
       } catch (err) {
-        this.error = err.response?.data?.message || 'Error en el registro';
+        this.error = err.response?.data?.errors || err.response?.data?.message || 'Error en el registro';
         return false;
       } finally {
         this.loading = false;

@@ -5,9 +5,13 @@
         <h1 class="text-2xl font-bold text-slate-900">Crear Cuenta</h1>
         <p class="text-slate-500 text-sm mt-1">Registra tu usuario en la plataforma</p>
       </div>
-
+      
       <div v-if="authStore.error" class="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200">
-        {{ authStore.error }}
+        <p class="font-semibold mb-1" v-if="Array.isArray(authStore.error)">Por favor corrige los siguientes errores:</p>
+        <ul v-if="Array.isArray(authStore.error)" class="list-disc list-inside space-y-1">
+          <li v-for="(err, index) in authStore.error" :key="index">{{ err }}</li>
+        </ul>
+        <p v-else>{{ authStore.error }}</p>
       </div>
 
       <form @submit.prevent="handleRegister" class="space-y-4">

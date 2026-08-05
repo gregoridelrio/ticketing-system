@@ -11,13 +11,21 @@ const registerSchema = Joi.object({
     'string.email': 'El correo electrónico debe ser válido.'
   }),
   password: Joi.string()
-    .min(8)
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])'))
     .required()
+    .custom((value, helpers) => {
+      const errors = [];
+      if (value.length < 8) errors.push('La contraseña debe tener al menos 8 caracteres.');
+      if (!/[A-Z]/.test(value)) errors.push('La contraseña debe incluir al menos una letra mayúscula.');
+      if (!/[a-z]/.test(value)) errors.push('La contraseña debe incluir al menos una letra minúscula.');
+      if (!/[0-9]/.test(value)) errors.push('La contraseña debe incluir al menos un número.');
+
+      if (errors.length > 0) {
+        return helpers.message(errors.join('||'));
+      }
+      return value;
+    })
     .messages({
-      'string.empty': 'La contraseña es obligatoria.',
-      'string.min': 'La contraseña debe tener al menos 8 caracteres.',
-      'string.pattern.base': 'La contraseña debe contener al menos una letra mayúscula, una letra minúscula y un número.'
+      'string.empty': 'La contraseña es obligatoria.'
     }),
   role: Joi.string().valid('USER', 'ADMIN').optional()
 });
@@ -27,7 +35,16 @@ const validate = (schema) => {
     const { error } = schema.validate(req.body, { abortEarly: false });
     
     if (error) {
-      const errorDetails = error.details.map((detail) => detail.message);
+      let errorDetails = [];
+      
+      error.details.forEach((detail) => {
+        if (detail.message.includes('||')) {
+          errorDetails.push(...detail.message.split('||'));
+        } else {
+          errorDetails.push(detail.message);
+        }
+      });
+
       return res.status(400).json({ 
         message: 'Error de validación de datos', 
         errors: errorDetails 
