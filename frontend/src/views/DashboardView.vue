@@ -5,11 +5,11 @@
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <h1 class="text-xl font-bold text-slate-800">Sistema de Tickets</h1>
         <div class="flex items-center gap-4">
-          <span class="text-sm text-slate-600">
-            {{ authStore.user?.name }} ({{ authStore.user?.role }})
+          <span class="text-sm text-slate-600" v-if="authStore.user">
+            {{ authStore.user.name }} ({{ authStore.user.role }})
           </span>
           <button 
-            @click="authStore.logout" 
+            @click="handleLogout" 
             class="text-xs text-red-600 hover:text-red-800 font-medium cursor-pointer"
           >
             Cerrar Sesión
@@ -182,9 +182,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useTicketStore } from '../stores/tickets';
 
+const router = useRouter();
 const authStore = useAuthStore();
 const ticketStore = useTicketStore();
 
@@ -198,21 +200,24 @@ const newTicket = ref({
   priority: 'MEDIUM'
 });
 
-onMounted(() => {
-  ticketStore.fetchTickets();
+onMounted(async () => {
+  await ticketStore.fetchTickets();
 });
 
-// Propiedad computada para filtrar tickets en el cliente en tiempo real
-const filteredTickets = computed(() => {
-  return ticketStore.tickets.filter(ticket => {
-    // Filtro por Estado
-    const matchesStatus = statusFilter.value === 'ALL' || ticket.status === statusFilter.value;
+const handleLogout = () => {
+  authStore.logout();
+  router.push('/login');
+};
 
-    // Filtro por Texto (Título o ID)
+const filteredTickets = computed(() => {
+  if (!Array.isArray(ticketStore.tickets)) return [];
+
+  return ticketStore.tickets.filter(ticket => {
+    const matchesStatus = statusFilter.value === 'ALL' || ticket.status === statusFilter.value;
     const query = searchQuery.value.toLowerCase().trim();
     const matchesSearch = !query || 
-      ticket.title.toLowerCase().includes(query) || 
-      ticket.id.toString().includes(query.replace('#', ''));
+      ticket.title?.toLowerCase().includes(query) || 
+      ticket.id?.toString().includes(query.replace('#', ''));
 
     return matchesStatus && matchesSearch;
   });
