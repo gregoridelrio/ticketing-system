@@ -6,17 +6,15 @@ const sequelize = require('./config/database');
 require('./models');
 
 const authRoutes = require('./routes/authRoutes');
+const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'API funcionando correctamente' });
-});
-
 app.use('/api/auth', authRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 const PORT = process.env.PORT || 4000;
 
