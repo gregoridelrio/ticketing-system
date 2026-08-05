@@ -90,23 +90,24 @@ exports.updateTicket = async (req, res) => {
     const ticket = await Ticket.findByPk(id);
 
     if (!ticket) {
-      return res.status(404).json({ message: 'Ticket no encontrado.' });
+      return res.status(404).json({ message: 'Ticket no encontrado' });
     }
 
-    if (req.user.role !== 'ADMIN' && ticket.createdBy !== req.user.id) {
-      return res.status(403).json({ message: 'No tienes permiso para modificar este ticket.' });
-    }
-
-    if (req.user.role === 'ADMIN') {
-      if (status) ticket.status = status;
-      if (priority) ticket.priority = priority;
-      if (assignedTo !== undefined) ticket.assignedTo = assignedTo;
-    } else {
-      if (status) ticket.status = status;
-    }
+    if (status) ticket.status = status;
+    if (priority) ticket.priority = priority;
+    if (assignedTo) ticket.assignedTo = assignedTo;
 
     await ticket.save();
-    res.json({ message: 'Ticket actualizado correctamente', ticket });
+
+    const updatedTicket = await Ticket.findByPk(id, {
+      include: [
+        { model: User, as: 'creator', attributes: ['id', 'name', 'email'] },
+        { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] },
+        { model: Comment, include: [{ model: User, as: 'author', attributes: ['id', 'name'] }] }
+      ]
+    });
+
+    res.json({ message: 'Ticket actualizado correctamente', ticket: updatedTicket });
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar el ticket', error: error.message });
   }
@@ -144,4 +145,12 @@ exports.addComment = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error al añadir el comentario', error: error.message });
   }
+};
+
+module.exports = {
+  getTickets: exports.getTickets || getTickets,
+  getTicketById: exports.getTicketById || getTicketById,
+  createTicket: exports.createTicket || createTicket,
+  updateTicket: exports.updateTicket || updateTicket,
+  addComment: exports.addComment || addComment
 };

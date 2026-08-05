@@ -3,12 +3,10 @@ const router = express.Router();
 const ticketController = require('../controllers/ticketController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
-router.use(authenticateToken);
-
-router.post('/', ticketController.createTicket);
-router.get('/', ticketController.getTickets);
-router.get('/:id', ticketController.getTicketById);
-router.patch('/:id', ticketController.updateTicket);
-router.post('/:id/comments', ticketController.addComment);
+router.get('/', authenticateToken, ticketController.getTickets);
+router.get('/:id', authenticateToken, ticketController.getTicketById);
+router.post('/', authenticateToken, ticketController.createTicket);
+router.patch('/:id', authenticateToken, ticketController.updateTicket);
+router.post('/:id/comments', authenticateToken, ticketController.addComment);
 
 module.exports = router;
