@@ -4,20 +4,32 @@ exports.createTicket = async (req, res) => {
   try {
     const { title, description, priority } = req.body;
 
-    if (!title || !description) {
-      return res.status(400).json({ message: 'Título y descripción son obligatorios.' });
-    }
-
-    const ticket = await Ticket.create({
+    const newTicket = await Ticket.create({
       title,
       description,
       priority: priority || 'MEDIUM',
       createdBy: req.user.id
     });
 
-    res.status(201).json({ message: 'Ticket creado exitosamente', ticket });
+    const fullTicket = await Ticket.findByPk(newTicket.id, {
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'name', 'email']
+        }
+      ]
+    });
+
+    res.status(201).json({
+      message: 'Ticket creado exitosamente',
+      ticket: fullTicket
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error al crear el ticket', error: error.message });
+    res.status(500).json({
+      message: 'Error al crear el ticket',
+      error: error.message
+    });
   }
 };
 
