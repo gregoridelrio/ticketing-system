@@ -48,6 +48,7 @@
               <th class="py-3 px-4">Estado</th>
               <th class="py-3 px-4">Prioridad</th>
               <th class="py-3 px-4">Creado Por</th>
+              <th class="py-3 px-4">Asignado A</th>
               <th class="py-3 px-4 text-right">Acciones</th>
             </tr>
           </thead>
@@ -66,6 +67,14 @@
                 </span>
               </td>
               <td class="py-3 px-4 text-slate-600">{{ ticket.creator?.name || 'N/A' }}</td>
+              <td class="py-3 px-4 text-slate-600">
+                <span v-if="ticket.assignee?.name" class="font-medium text-slate-700">
+                  {{ ticket.assignee.name }}
+                </span>
+                <span v-else class="text-xs text-slate-400 italic">
+                  Sin Asignar
+                </span>
+              </td>
               <td class="py-3 px-4 text-right">
                 <router-link 
                   :to="`/tickets/${ticket.id}`" 
