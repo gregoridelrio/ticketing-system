@@ -3,6 +3,8 @@ const cors = require('cors');
 require('dotenv').config();
 const sequelize = require('./config/database');
 
+require('./models');
+
 const app = express();
 
 app.use(cors());
@@ -19,8 +21,9 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Conexión a MySQL establecida correctamente.');
     
-    await sequelize.sync();
-    
+    await sequelize.sync({ alter: true });
+    console.log('Modelos y tablas sincronizados correctamente.');
+
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en el puerto ${PORT}`);
     });
