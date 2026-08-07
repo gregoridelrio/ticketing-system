@@ -5,18 +5,28 @@ import { useToastStore } from './toast';
 export const useTicketStore = defineStore('tickets', {
   state: () => ({
     tickets: [],
+    users: [],
     currentTicket: null,
     loading: false,
     error: null
   }),
 
   actions: {
+    async fetchUsers() {
+      try {
+        const res = await api.get('/tickets/users');
+        this.users = res.data;
+      } catch (err) {
+        console.error('Error al obtener usuarios:', err);
+      }
+    },
+
     async fetchTickets() {
       this.loading = true;
       this.error = null;
       try {
         const res = await api.get('/tickets');
-        this.tickets = res.data;
+        this.tickets = res.data.tickets || res.data;
       } catch (err) {
         const toastStore = useToastStore();
         this.error = err.response?.data?.message || 'Error al obtener tickets';
@@ -60,29 +70,30 @@ export const useTicketStore = defineStore('tickets', {
       }
     },
 
-async updateTicket(id, updateData) {
-  const toastStore = useToastStore();
-  try {
-    const res = await api.patch(`/tickets/${id}`, updateData);
-    
-    const updated = res.data.ticket || res.data;
+    async updateTicket(id, updateData) {
+      const toastStore = useToastStore();
+      try {
+        const res = await api.patch(`/tickets/${id}`, updateData);
+        const updated = res.data.ticket || res.data;
 
-    if (this.currentTicket) {
-      Object.assign(this.currentTicket, updated);
-    }
+        if (this.currentTicket && this.currentTicket.id === id) {
+          Object.assign(this.currentTicket, updated);
+        }
 
-    toastStore.addToast('Ticket actualizado con éxito', 'success');
+        const index = this.tickets.findIndex(t => t.id === id);
+        if (index !== -1) {
+          this.tickets[index] = { ...this.tickets[index], ...updated };
+        }
 
-    this.fetchTickets().catch(() => {});
-
-    return true;
-  } catch (err) {
-    console.error('Error en updateTicket:', err);
-    this.error = err.response?.data?.message || 'Error al actualizar ticket';
-    toastStore.addToast(this.error, 'error');
-    return false;
-  }
-},
+        toastStore.addToast('Ticket actualizado con éxito', 'success');
+        return true;
+      } catch (err) {
+        console.error('Error en updateTicket:', err);
+        this.error = err.response?.data?.message || 'Error al actualizar ticket';
+        toastStore.addToast(this.error, 'error');
+        return false;
+      }
+    },
 
     async addComment(ticketId, content) {
       const toastStore = useToastStore();

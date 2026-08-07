@@ -84,48 +84,40 @@ exports.getTicketById = async (req, res) => {
 
 exports.updateTicket = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { title, description, status, priority, assignedTo } = req.body;
-
-    const ticket = await Ticket.findByPk(id);
+    const { status, priority, assignedTo } = req.body;
+    const ticket = await Ticket.findByPk(req.params.id);
 
     if (!ticket) {
-      return res.status(404).json({ message: 'Ticket no encontrado' });
+      return res.status(404).json({ message: 'Ticket no encontrado.' });
     }
 
-    let parsedAssignedTo = assignedTo;
-    if (assignedTo === '' || assignedTo === 'unassigned' || assignedTo === null) {
-      parsedAssignedTo = null;
-    } else if (assignedTo !== undefined) {
-      parsedAssignedTo = parseInt(assignedTo, 10);
+    if (req.user.role !== 'ADMIN' && ticket.createdBy !== req.user.id) {
+      return res.status(403).json({ message: 'No tienes permiso para actualizar este ticket.' });
     }
 
-    // 3. Actualizar campos recibidos
-    if (title !== undefined) ticket.title = title;
-    if (description !== undefined) ticket.description = description;
+    if (assignedTo !== undefined) {
+      if (req.user.role !== 'ADMIN') {
+        return res.status(403).json({ message: 'Solo los administradores pueden asignar tickets.' });
+      }
+      ticket.assignedTo = assignedTo;
+    }
+
     if (status !== undefined) ticket.status = status;
     if (priority !== undefined) ticket.priority = priority;
-    if (assignedTo !== undefined) ticket.assignedTo = parsedAssignedTo;
 
     await ticket.save();
 
-    const updatedTicket = await Ticket.findByPk(id, {
+    const updatedTicket = await Ticket.findByPk(ticket.id, {
       include: [
         { model: User, as: 'creator', attributes: ['id', 'name', 'email'] },
         { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] }
       ]
     });
 
-    return res.status(200).json({
-      message: 'Ticket actualizado correctamente',
-      ticket: updatedTicket
-    });
+    return res.json(updatedTicket);
   } catch (error) {
     console.error('Error al actualizar ticket:', error);
-    return res.status(500).json({ 
-      message: 'Error interno del servidor al actualizar el ticket', 
-      error: error.message 
-    });
+    return res.status(500).json({ message: 'Error interno del servidor.' });
   }
 };
 
@@ -163,10 +155,23 @@ exports.addComment = async (req, res) => {
   }
 };
 
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'name', 'email', 'role']
+    });
+    return res.json(users);
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error);
+    return res.status(500).json({ message: 'Error interno al obtener usuarios.' });
+  }
+};
+
 module.exports = {
   getTickets: exports.getTickets || getTickets,
   getTicketById: exports.getTicketById || getTicketById,
   createTicket: exports.createTicket || createTicket,
   updateTicket: exports.updateTicket || updateTicket,
-  addComment: exports.addComment || addComment
+  addComment: exports.addComment || addComment,
+  getUsers: exports.getUsers
 };

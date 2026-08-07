@@ -122,14 +122,29 @@
               </td>
               <td class="py-3 px-4 text-slate-600">{{ ticket.priority }}</td>
               <td class="py-3 px-4 text-slate-600">{{ ticket.creator?.name || 'N/A' }}</td>
-              <td class="py-3 px-4 text-slate-600">
-                <span v-if="ticket.assignee?.name" class="font-medium text-slate-700">
-                  {{ ticket.assignee.name }}
-                </span>
-                <span v-else class="text-xs text-slate-400 italic">
-                  Sin Asignar
-                </span>
-              </td>
+<td class="py-3 px-4">
+  <!-- Si es ADMIN: Desplegable editable -->
+  <select 
+    v-if="authStore.user?.role === 'ADMIN'"
+    :value="ticket.assignedTo || ''"
+    @change="handleAssignChange(ticket.id, $event.target.value)"
+    class="text-xs bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+  >
+    <option value="">Sin Asignar</option>
+    <option 
+      v-for="user in ticketStore.users" 
+      :key="user.id" 
+      :value="user.id"
+    >
+      {{ user.name }}
+    </option>
+  </select>
+
+  <!-- Si NO es ADMIN: Solo lectura -->
+  <span v-else class="text-xs text-slate-600 font-medium">
+    {{ ticket.assignee ? ticket.assignee.name : 'Sin Asignar' }}
+  </span>
+</td>
               <td class="py-3 px-4 text-right">
                 <router-link 
                   :to="`/tickets/${ticket.id}`" 
@@ -225,7 +240,13 @@ const newTicket = ref({
 
 onMounted(async () => {
   await ticketStore.fetchTickets();
+  await ticketStore.fetchUsers();
 });
+
+const handleAssignChange = async (ticketId, userId) => {
+  const value = userId === '' ? null : Number(userId);
+  await ticketStore.updateTicket(ticketId, { assignedTo: value });
+};
 
 const handleLogout = () => {
   authStore.logout();
