@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const sequelize = require('./config/database');
+const seedDatabase = require('./seeders/demoSeeder');
 
 require('./models');
 
@@ -23,6 +24,7 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Conexión a MySQL establecida correctamente.');
     await sequelize.sync({ alter: true });
+    await seedDatabase();
     
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en el puerto ${PORT}`);
