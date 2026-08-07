@@ -85,7 +85,7 @@ exports.getTicketById = async (req, res) => {
 exports.updateTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, priority, assignedTo } = req.body;
+    const { title, description, status, priority, assignedTo } = req.body;
 
     const ticket = await Ticket.findByPk(id);
 
@@ -93,23 +93,39 @@ exports.updateTicket = async (req, res) => {
       return res.status(404).json({ message: 'Ticket no encontrado' });
     }
 
-    if (status) ticket.status = status;
-    if (priority) ticket.priority = priority;
-    if (assignedTo) ticket.assignedTo = assignedTo;
+    let parsedAssignedTo = assignedTo;
+    if (assignedTo === '' || assignedTo === 'unassigned' || assignedTo === null) {
+      parsedAssignedTo = null;
+    } else if (assignedTo !== undefined) {
+      parsedAssignedTo = parseInt(assignedTo, 10);
+    }
+
+    // 3. Actualizar campos recibidos
+    if (title !== undefined) ticket.title = title;
+    if (description !== undefined) ticket.description = description;
+    if (status !== undefined) ticket.status = status;
+    if (priority !== undefined) ticket.priority = priority;
+    if (assignedTo !== undefined) ticket.assignedTo = parsedAssignedTo;
 
     await ticket.save();
 
     const updatedTicket = await Ticket.findByPk(id, {
       include: [
         { model: User, as: 'creator', attributes: ['id', 'name', 'email'] },
-        { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] },
-        { model: Comment, include: [{ model: User, as: 'author', attributes: ['id', 'name'] }] }
+        { model: User, as: 'assignee', attributes: ['id', 'name', 'email'] }
       ]
     });
 
-    res.json({ message: 'Ticket actualizado correctamente', ticket: updatedTicket });
+    return res.status(200).json({
+      message: 'Ticket actualizado correctamente',
+      ticket: updatedTicket
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar el ticket', error: error.message });
+    console.error('Error al actualizar ticket:', error);
+    return res.status(500).json({ 
+      message: 'Error interno del servidor al actualizar el ticket', 
+      error: error.message 
+    });
   }
 };
 
