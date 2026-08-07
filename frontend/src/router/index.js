@@ -25,6 +25,11 @@ const routes = [
     name: 'TicketDetail',
     component: () => import('../views/TicketDetailView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFoundView.vue')
   }
 ];
 
