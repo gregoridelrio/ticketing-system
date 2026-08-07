@@ -34,6 +34,29 @@
         </button>
       </div>
 
+      <!-- TARJETAS DE ESTADÍSTICAS -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Tickets</span>
+          <p class="text-2xl font-black text-slate-800 mt-1">{{ stats.total }}</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Abiertos</span>
+          <p class="text-2xl font-black text-red-600 mt-1">{{ stats.open }}</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">En Proceso</span>
+          <p class="text-2xl font-black text-amber-600 mt-1">{{ stats.inProgress }}</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Resueltos</span>
+          <p class="text-2xl font-black text-emerald-600 mt-1">{{ stats.resolved }}</p>
+        </div>
+      </div>
+
       <!-- Toolbar: Buscador y Filtros -->
       <div class="bg-white p-4 rounded-xl border border-slate-200 mb-6 flex flex-col sm:flex-row gap-4 justify-between">
         <!-- Buscador por texto -->
@@ -240,4 +263,14 @@ const getStatusBadgeClass = (status) => {
     default: return classes + 'bg-slate-100 text-slate-700';
   }
 };
+
+const stats = computed(() => {
+  const tickets = Array.isArray(ticketStore.tickets) ? ticketStore.tickets : [];
+  return {
+    total: tickets.length,
+    open: tickets.filter(t => t.status === 'OPEN').length,
+    inProgress: tickets.filter(t => t.status === 'IN_PROGRESS').length,
+    resolved: tickets.filter(t => t.status === 'RESOLVED').length
+  };
+});
 </script>
