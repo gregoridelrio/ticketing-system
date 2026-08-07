@@ -3,6 +3,12 @@ const { User, Ticket, Comment } = require('../models');
 
 const seedDatabase = async () => {
   try {
+    const userCount = await User.count();
+    if (userCount > 0) {
+      console.log('Base de datos ya poblada. Omitiendo Seeding.');
+      return;
+    }
+
     console.log('Iniciando Seeding...');
 
     const adminPassword = await bcrypt.hash('Admin123!', 10);
@@ -16,7 +22,7 @@ const seedDatabase = async () => {
     });
 
     const user = await User.create({
-      name: 'User Demo',
+      name: 'Juan Pérez',
       email: 'user@demo.com',
       password: userPassword,
       role: 'USER'
@@ -50,26 +56,26 @@ const seedDatabase = async () => {
     });
 
     await Comment.create({
-      text: 'Adjunto captura de pantalla con los logs del servidor.',
+      content: 'Adjunto captura de pantalla con los logs del servidor.',
       ticketId: ticket1.id,
       userId: user.id
     });
 
     await Comment.create({
-      text: 'Revisando los webhooks de Stripe. Parece un problema de timeout.',
+      content: 'Revisando los webhooks de Stripe. Parece un problema de timeout.',
       ticketId: ticket2.id,
       userId: admin.id
     });
 
     await Comment.create({
-      text: 'Se agregaron índices en la base de datos y el reporte ahora carga en 200ms.',
+      content: 'Se agregaron índices en la base de datos y el reporte ahora carga en 200ms.',
       ticketId: ticket3.id,
       userId: admin.id
     });
 
-    console.log('✅ Base de datos poblada exitosamente.');
+    console.log('Base de datos poblada exitosamente.');
   } catch (error) {
-    console.error('❌ Error al ejecutar el seeder:', error);
+    console.error('Error al ejecutar el seeder:', error);
   }
 };
 

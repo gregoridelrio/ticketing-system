@@ -23,7 +23,8 @@ async function startServer() {
   try {
     await sequelize.authenticate();
     console.log('Conexión a MySQL establecida correctamente.');
-    await sequelize.sync({ alter: true });
+    
+    await sequelize.sync();
     await seedDatabase();
     
     app.listen(PORT, () => {
