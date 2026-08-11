@@ -11,7 +11,21 @@ const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  'https://ticketing-system-alpha-nine.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Bloqueado por política de CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
